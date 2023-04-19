@@ -29,9 +29,31 @@ app.post('/register',async (req,res) => {
     catch(error){
         res.status(422).json(error);
     }
-    
-   
 });
+
+//for user login
+app.post('/login', async(req, res) => {
+    const {email, password} = req.body;
+    const userDoc = await UserModel.findOne({email});
+
+    if(userDoc){
+    //check the password is correct or not
+    const passwordOk = bcrypt.compareSync(password, userDoc.password);   
+        if(passwordOk)
+        {
+            res.cookie('token','').json("Password does match");
+
+        }
+        else {
+            res.status(422).json("Password does not match");
+        }
+    }
+    else{
+        res.json('Not Found');
+    }
+    
+});
+
 
 app.get('/test',(req,res) => {
     res.json('test ok');
