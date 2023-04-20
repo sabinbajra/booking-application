@@ -1,12 +1,13 @@
 import axios from 'axios';
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Navigate, redirect } from 'react-router-dom';
 
 
 const LoginPage = () => {
 
   const [email,setEmail] = useState("");
   const [password,setPassword] = useState("");
+  const [reDirect, setReDirect] = useState(false);
 
   
   const handleLoginSubmit = async(event) => {
@@ -14,11 +15,16 @@ const LoginPage = () => {
     try{
     await axios.post("/login", {email, password});
     alert("Login Successful");
+    setReDirect(true);
     }
     catch(err){
       alert("Login Failed");
     }
   };
+
+  if(reDirect){
+    return <Navigate to={'/'} />;
+  }
 
   return (
     <div className='mt-4 grow flex items-center justify-around'>
