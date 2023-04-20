@@ -7,11 +7,14 @@ require('dotenv').config();
 const bcrypt = require('bcrypt');
 const bcryptSalt = bcrypt.genSaltSync(10);
 const jwt = require('jsonwebtoken');
+const CookieParser = require('cookie-parser');
+const cookieParser = require('cookie-parser');
 
 
 const jwtSecret = "alkjsdflkasdjf345kjasfd";
 
 app.use(express.json());
+app.use(cookieParser());
 app.use(cors({
     credentials: true,
     origin: 'http://localhost:3000',
@@ -45,9 +48,12 @@ app.post('/login', async(req, res) => {
     const passwordOk = bcrypt.compareSync(password, userDoc.password);   
         if(passwordOk)
         {
-            jwt.sign({email: userDoc.email, id: userDoc._id}, jwtSecret, {}, (err, token) => {
+            jwt.sign({
+                email: userDoc.email, 
+                id: userDoc._id 
+                }, jwtSecret, {}, (err, token) => {
                 if(err) throw err;
-                res.cookie('token',token).json("Password does match");
+                res.cookie('token',token).json(userDoc);
                 });
             
         }
@@ -61,6 +67,23 @@ app.post('/login', async(req, res) => {
     
 });
 
+app.get('/profile',(req,res) => {
+    const {token} = req.cookies;
+    if(token)
+    {
+        //decrypt the token
+        jwt.verify(token, jwtSecret, {}, async (err, userData) => {
+            if(err) throw err;
+            const {name,email,_id} = await UserModel.findById(userData.id);
+            res.json({name,email,_id});
+
+        });
+
+    }else{
+        res.json(null);
+    }
+ 
+});
 
 app.get('/test',(req,res) => {
     res.json('test ok');
