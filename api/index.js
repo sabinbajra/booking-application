@@ -6,6 +6,10 @@ const UserModel = require('./models/User');
 require('dotenv').config();
 const bcrypt = require('bcrypt');
 const bcryptSalt = bcrypt.genSaltSync(10);
+const jwt = require('jsonwebtoken');
+
+
+const jwtSecret = "alkjsdflkasdjf345kjasfd";
 
 app.use(express.json());
 app.use(cors({
@@ -15,10 +19,10 @@ app.use(cors({
 
 mongoose.connect(process.env.MONGO_URL);
 
+//for user registration
 app.post('/register',async (req,res) => {
     const { name, email, password } = req.body;
     try{
-
         const userDoc = await UserModel.create({
             name,
             email,
@@ -41,8 +45,11 @@ app.post('/login', async(req, res) => {
     const passwordOk = bcrypt.compareSync(password, userDoc.password);   
         if(passwordOk)
         {
-            res.cookie('token','').json("Password does match");
-
+            jwt.sign({email: userDoc.email, id: userDoc._id}, jwtSecret, {}, (err, token) => {
+                if(err) throw err;
+                res.cookie('token',token).json("Password does match");
+                });
+            
         }
         else {
             res.status(422).json("Password does not match");
